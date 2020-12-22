@@ -1,0 +1,76 @@
+﻿@page "/"
+
+@using System.IO.Ports
+
+<h1>SerialPortTest</h1>
+
+<p>送信側</p>
+
+<select @bind="@SelectComPort">
+    @foreach (var ComPort in ComPorts)
+    {
+        <option value=@ComPort>@ComPort</option>
+    }
+</select>
+<br>
+
+<button @onclick="@Connect">
+    connect
+</button>
+<br>
+
+<input type="text" @bind="@SendData">
+<br>
+
+<button @onclick="@Send">
+    Send
+</button>
+<br>
+<br>
+
+<p>受信側</p>
+
+<input type="text" size="100" @bind="@RecieveData">
+<br>
+
+
+@code{
+    string[] ComPorts = SerialPort.GetPortNames();
+    string SelectComPort { get; set; } = "";
+    string SendData { get; set; } = "";
+    string RecieveData { get; set; } = "";
+
+    SerialPort serialPort = new SerialPort();
+
+    private void Connect()
+    {
+        serialPort.BaudRate = 9600;
+        serialPort.DataBits = 8;
+        serialPort.Parity = Parity.None;
+        serialPort.StopBits = StopBits.One;
+        serialPort.WriteTimeout = 1000;
+        serialPort.ReadTimeout = 1000;
+        serialPort.PortName = SelectComPort;
+
+        try
+        {
+            serialPort.Open();
+            serialPort.DataReceived += OnReceived;
+        }
+        catch(Exception ex)
+        {
+            //エラー処理
+        }
+    }
+
+    private void Send()
+    {
+        serialPort.Write(SendData);
+    }
+
+    private void OnReceived(object sender, SerialDataReceivedEventArgs e)
+    {
+        RecieveData += serialPort.ReadExisting();
+        InvokeAsync(() => StateHasChanged());
+    }
+}

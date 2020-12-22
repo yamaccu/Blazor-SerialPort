@@ -1,0 +1,1 @@
+Build Serialport Desktop SampleApp by Blazor server side
